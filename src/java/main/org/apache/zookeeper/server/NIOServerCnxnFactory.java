@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.zookeeper.Login;
-import org.apache.zookeeper.server.auth.SaslServerCallbackHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,17 +89,8 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     Thread thread;
     @Override
     public void configure(InetSocketAddress addr, int maxcc) throws IOException {
-        if (System.getProperty("java.security.auth.login.config") != null) {
-            try {
-                saslServerCallbackHandler = new SaslServerCallbackHandler(Configuration.getConfiguration());
-                login = new Login("Server",saslServerCallbackHandler);
-                login.startThreadIfNeeded();
-            }
-            catch (LoginException e) {
-                throw new IOException("Could not configure server because SASL configuration did not allow the "
-                  + " Zookeeper server to authenticate itself properly: " + e);
-            }
-        }
+        configureSaslLogin();
+
         thread = new Thread(this, "NIOServerCxn.Factory:" + addr);
         thread.setDaemon(true);
         maxClientCnxns = maxcc;
