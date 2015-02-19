@@ -275,7 +275,7 @@
                   targetfile="${src_generated.dir}/.generated"/>
     </target>
 
-    <target name="compile_jute" depends="jute,compile_jute_uptodate" unless="juteBuild.notRequired">
+    <target name="compile_jute" depends="jute" unless="juteBuild.notRequired">
         <mkdir dir="${src_generated.dir}" />
         <mkdir dir="${csrc_generated.dir}" />
         <java classname="org.apache.jute.compiler.generated.Rcc" fork="true" dir="${src_generated.dir}">
