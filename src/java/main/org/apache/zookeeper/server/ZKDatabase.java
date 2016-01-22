@@ -34,10 +34,11 @@ import org.apache.jute.BinaryOutputArchive;
 import org.apache.jute.InputArchive;
 import org.apache.jute.OutputArchive;
 import org.apache.jute.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.WatcherType;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.DataTree.ProcessTxnResult;
@@ -48,8 +49,6 @@ import org.apache.zookeeper.server.quorum.Leader.Proposal;
 import org.apache.zookeeper.server.quorum.QuorumPacket;
 import org.apache.zookeeper.server.util.SerializeUtils;
 import org.apache.zookeeper.txn.TxnHeader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class maintains the in memory database of zookeeper
@@ -500,18 +499,4 @@ public class ZKDatabase {
         this.snapLog.close();
     }
     
-
-    /**
-     * Remove watch from the datatree
-     * 
-     * @param path
-     *            node to remove watches from
-     * @param type
-     *            type of watcher to remove
-     * @param watcher
-     *            watcher function to remove
-     */
-    public void removeWatch(String path, WatcherType type, Watcher watcher) {
-        dataTree.removeWatch(path, type, watcher);
-    }
 }
