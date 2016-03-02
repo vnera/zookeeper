@@ -1,8 +1,13 @@
 Release 3.4.6 - TBD
 
+
+
 Backward compatible changes:
 
 BUGFIXES:
+
+  ZOOKEEPER-2375: Prevent multiple initialization of login object in each
+  ZooKeeperSaslClient instance (yuemeng via rakeshr)
 
   ZOOKEEPER-2347: Deadlock shutting down zookeeper
   (Rakesh R via rgs)
