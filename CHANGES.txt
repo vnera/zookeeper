@@ -1,6 +1,7 @@
 Release 3.4.6 - TBD
 
 
+  ZOOKEEPER-2141 ACL cache in DataTree never removes entries (Adam Milne-Smith via camille)
 
 Backward compatible changes:
 
