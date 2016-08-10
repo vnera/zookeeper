@@ -135,6 +135,11 @@ BUGFIXES:
   ZOOKEEPER-1873. Unnecessarily InstanceNotFoundException is coming when
   unregister failed jmxbeans (Rakesh R via michim)
 
+  ZOOKEEPER-2477: documentation should refer to Java cli shell and not
+  C cli shell (Abraham Fine via phunt)
+
+  Fix command handling in the C client shell (phunt via fpj)
+
 IMPROVEMENTS:
 
 

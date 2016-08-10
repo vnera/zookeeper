@@ -297,6 +297,9 @@ document.write("Last Published: " + document.lastModified);
 <a href="#Unsafe+Options">Unsafe Options</a>
 </li>
 <li>
+<a href="#Disabling+data+directory+autocreation">Disabling data directory autocreation</a>
+</li>
+<li>
 <a href="#Communication+using+the+Netty+framework">Communication using the Netty framework</a>
 </li>
 </ul>
@@ -561,54 +564,12 @@ server.3=zoo3:2888:3888</pre>
 <p>Test your deployment by connecting to the hosts:</p>
 
           
-<ul>
-            
-<li>
-              
 <p>In Java, you can run the following command to execute
-              simple operations:</p>
-
-              
-<p>
-<span class="codefrag computeroutput">$ java -cp zookeeper.jar:lib/slf4j-api-1.6.1.jar:lib/slf4j-log4j12-1.6.1.jar:lib/log4j-1.2.15.jar:conf:src/java/lib/jline-0.9.94.jar \
-      org.apache.zookeeper.ZooKeeperMain -server 127.0.0.1:2181</span>
-</p>
-            
-</li>
-
-            
-<li>
-              
-<p>In C, you can compile either the single threaded client or
-              the multithreaded client: or n the c subdirectory in the
-              ZooKeeper sources. This compiles the single threaded
-              client:</p>
-
-              
-<p>
-<span class="codefrag computeroutput">$ make cli_st</span>
-</p>
-
-              
-<p>And this compiles the mulithreaded client:</p>
-
-              
-<p>
-<span class="codefrag computeroutput">$ make cli_mt</span>
-</p>
-            
-</li>
-          
-</ul>
-
-          
-<p>Running either program gives you a shell in which to execute
-          simple file-system-like operations. To connect to ZooKeeper with the
-          multithreaded client, for example, you would run:</p>
+          simple operations:</p>
 
           
 <p>
-<span class="codefrag computeroutput">$ cli_mt 127.0.0.1:2181</span>
+<span class="codefrag computeroutput">$ bin/zkCli.sh -server 127.0.0.1:2181</span>
 </p>
         
 </li>
@@ -1460,6 +1421,54 @@ server.3=zoo3:2888:3888</pre>
 </dd>
         
 </dl>
+<a name="Disabling+data+directory+autocreation"></a>
+<h4>Disabling data directory autocreation</h4>
+<p>
+<strong>New in 3.5:</strong> The default
+        behavior of a ZooKeeper server is to automatically create the
+        data directory (specified in the configuration file) when
+        started if that directory does not already exist. This can be
+        inconvenient and even dangerous in some cases. Take the case
+        where a configuration change is made to a running server,
+        wherein the <strong>dataDir</strong> parameter
+        is accidentally changed. When the ZooKeeper server is
+        restarted it will create this non-existent directory and begin
+        serving - with an empty znode namespace. This scenario can
+        result in an effective "split brain" situation (i.e. data in
+        both the new invalid directory and the original valid data
+        store). As such is would be good to have an option to turn off
+        this autocreate behavior. In general for production
+        environments this should be done, unfortunately however the
+        default legacy behavior cannot be changed at this point and
+        therefore this must be done on a case by case basis. This is
+        left to users and to packagers of ZooKeeper distributions.
+        </p>
+<p>When running <strong>zkServer.sh</strong> autocreate can be disabled
+        by setting the environment variable <strong>ZOO_DATADIR_AUTOCREATE_DISABLE</strong> to 1.
+        When running ZooKeeper servers directly from class files this
+        can be accomplished by setting <strong>zookeeper.datadir.autocreate=false</strong> on
+        the java command line, i.e. <strong>-Dzookeeper.datadir.autocreate=false</strong>
+        
+</p>
+<p>When this feature is disabled, and the ZooKeeper server
+        determines that the required directories do not exist it will
+        generate an error and refuse to start.
+        </p>
+<p>A new script <strong>zkServer-initialize.sh</strong> is provided to
+        support this new feature. If autocreate is disabled it is
+        necessary for the user to first install ZooKeeper, then create
+        the data directory (and potentially txnlog directory), and
+        then start the server. Otherwise as mentioned in the previous
+        paragraph the server will not start. Running <strong>zkServer-initialize.sh</strong> will create the
+        required directories, and optionally setup the myid file
+        (optional command line parameter). This script can be used
+        even if the autocreate feature itself is not used, and will
+        likely be of use to users as this (setup, including creation
+        of the myid file) has been an issue for users in the past.
+        Note that this script ensures the data directories exist only,
+        it does not create a config file, but rather requires a config
+        file to be available in order to execute.
+        </p>
 <a name="Communication+using+the+Netty+framework"></a>
 <h4>Communication using the Netty framework</h4>
 <p>
