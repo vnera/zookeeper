@@ -140,6 +140,9 @@ BUGFIXES:
 
   Fix command handling in the C client shell (phunt via fpj)
 
+  ZOOKEEPER-2579: ZooKeeper server should verify that dataDir and
+  snapDir are writeable before starting (Abraham Fine via phunt)
+
 IMPROVEMENTS:
 
 
