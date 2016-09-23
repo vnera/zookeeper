@@ -143,6 +143,9 @@ BUGFIXES:
   ZOOKEEPER-2579: ZooKeeper server should verify that dataDir and
   snapDir are writeable before starting (Abraham Fine via phunt)
 
+  ZOOKEEPER-1576. Zookeeper cluster - failed to connect to cluster if one of the
+  provided IPs causes java.net.UnknownHostException (Edward Ribeiro via camille)
+
 IMPROVEMENTS:
 
 
