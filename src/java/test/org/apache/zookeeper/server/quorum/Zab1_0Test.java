@@ -20,6 +20,8 @@ package org.apache.zookeeper.server.quorum;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -341,7 +343,9 @@ public class Zab1_0Test {
                 Thread.sleep(20);
             }
             
-            LearnerHandler lh = new LearnerHandler(leaderSocket, leader);
+            LearnerHandler lh = new LearnerHandler(leaderSocket,
+                    new BufferedInputStream(leaderSocket.getInputStream()),
+                    leader);
             lh.start();
             leaderSocket.setSoTimeout(4000);
 
@@ -377,7 +381,9 @@ public class Zab1_0Test {
             
             ServerSocket ss = new ServerSocket();
             ss.bind(null);
-            follower.setLeaderSocketAddress((InetSocketAddress)ss.getLocalSocketAddress());
+            QuorumServer leaderQS = new QuorumServer(1,
+                    (InetSocketAddress) ss.getLocalSocketAddress());
+            follower.setLeaderQuorumServer(leaderQS);
             final Follower followerForThread = follower;
             
             followerThread = new Thread() {
@@ -839,14 +845,14 @@ public class Zab1_0Test {
             super(self, zk);
         }
 
-        InetSocketAddress leaderAddr;
-        public void setLeaderSocketAddress(InetSocketAddress addr) {
-            leaderAddr = addr;
+        QuorumServer leaderQuorumServer;
+        public void setLeaderQuorumServer(QuorumServer quorumServer) {
+            leaderQuorumServer = quorumServer;
         }
         
         @Override
-        protected InetSocketAddress findLeader() {
-            return leaderAddr;
+        protected QuorumServer findLeader() {
+            return leaderQuorumServer;
         }
     }
     private ConversableFollower createFollower(File tmpDir, QuorumPeer peer)
@@ -861,13 +867,13 @@ public class Zab1_0Test {
 
     private QuorumPeer createQuorumPeer(File tmpDir) throws IOException,
             FileNotFoundException {
-        QuorumPeer peer = new QuorumPeer();
+        QuorumPeer peer = QuorumPeer.testingQuorumPeer();
         peer.syncLimit = 2;
         peer.initLimit = 2;
         peer.tickTime = 2000;
         peer.quorumPeers = new HashMap<Long, QuorumServer>();
-        peer.quorumPeers.put(1L, new QuorumServer(0, new InetSocketAddress(33221)));
-        peer.quorumPeers.put(1L, new QuorumServer(1, new InetSocketAddress(33223)));
+        peer.quorumPeers.put(1L, new QuorumServer(0, "0.0.0.0", 33221, 0, null));
+        peer.quorumPeers.put(1L, new QuorumServer(1, "0.0.0.0", 33223, 0, null));
         peer.setQuorumVerifier(new QuorumMaj(3));
         peer.setCnxnFactory(new NullServerCnxnFactory());
         File version2 = new File(tmpDir, "version-2");
