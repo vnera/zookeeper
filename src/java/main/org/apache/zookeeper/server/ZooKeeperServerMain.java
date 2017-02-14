@@ -118,7 +118,7 @@ public class ZooKeeperServerMain {
             cnxnFactory.startup(zkServer);
             cnxnFactory.join();
             if (zkServer.isRunning()) {
-                zkServer.shutdown();
+                zkServer.shutdown(true);
             }
         } catch (InterruptedException e) {
             // warn, but generally this is ok
