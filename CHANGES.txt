@@ -162,6 +162,9 @@ IMPROVEMENTS:
   ZOOKEEPER-1583. Document maxClientCnxns in conf/zoo_sample.cfg
   (Christopher Tubbs via phunt)
 
+  ZOOKEEPER-1564. Allow JUnit test build with IBM Java
+  (Paulo Ricardo Paz Vital via phunt)
+
   ZOOKEEPER-1627. Add org.apache.zookeeper.common to exported packages
   in OSGi MANIFEST (Arnoud Glimmerveen via phunt)
 
