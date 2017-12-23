@@ -25,6 +25,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -57,12 +59,13 @@ import org.apache.zookeeper.server.ZKDatabase;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.persistence.FileTxnLog;
 import org.apache.zookeeper.server.quorum.QuorumPeer;
-import org.apache.zookeeper.server.util.OSMXBean;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.management.UnixOperatingSystemMXBean;
 
 public abstract class ClientBase extends ZKTestCase {
     protected static final Logger LOG = LoggerFactory.getLogger(ClientBase.class);
@@ -464,9 +467,12 @@ public abstract class ClientBase extends ZKTestCase {
          * correctly. Unfortunately this only works on unix systems (the
          * only place sun has implemented as part of the mgmt bean api.
          */
-        OSMXBean osMbean = new OSMXBean();
-        if (osMbean.getUnix() == true) {
-            initialFdCount = osMbean.getOpenFileDescriptorCount();  	
+        OperatingSystemMXBean osMbean =
+            ManagementFactory.getOperatingSystemMXBean();
+        if (osMbean != null && osMbean instanceof UnixOperatingSystemMXBean) {
+            UnixOperatingSystemMXBean unixos =
+                (UnixOperatingSystemMXBean)osMbean;
+            initialFdCount = unixos.getOpenFileDescriptorCount();
             LOG.info("Initial fdcount is: "
                     + initialFdCount);
         }
@@ -582,9 +588,12 @@ public abstract class ClientBase extends ZKTestCase {
          * correctly. Unfortunately this only works on unix systems (the
          * only place sun has implemented as part of the mgmt bean api.
          */
-        OSMXBean osMbean = new OSMXBean();
-        if (osMbean.getUnix() == true) {
-            long fdCount = osMbean.getOpenFileDescriptorCount();     
+        OperatingSystemMXBean osMbean =
+            ManagementFactory.getOperatingSystemMXBean();
+        if (osMbean != null && osMbean instanceof UnixOperatingSystemMXBean) {
+            UnixOperatingSystemMXBean unixos =
+                (UnixOperatingSystemMXBean)osMbean;
+            long fdCount = unixos.getOpenFileDescriptorCount();
             String message = "fdcount after test is: "
                     + fdCount + " at start it was " + initialFdCount;
             LOG.info(message);
