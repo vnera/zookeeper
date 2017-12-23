@@ -281,13 +281,4 @@ public class PathTrie {
         }
         return sb.toString();
     }
-
-    /**
-     * clear all nodes
-     */
-    public void clear() {
-        for(String child : rootNode.getChildren()) {
-            rootNode.deleteChild(child);
-        }
-    }
 }
