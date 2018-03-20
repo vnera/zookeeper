@@ -182,6 +182,7 @@ public class SessionTest extends ZKTestCase {
      * client is disconnected, but not session closed, that the server
      * will remove ephemeral nodes created by the original session.
      */
+    @Ignore
     @Test
     public void testSession()
         throws IOException, InterruptedException, KeeperException
