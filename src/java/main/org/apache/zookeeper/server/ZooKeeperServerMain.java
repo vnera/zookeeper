@@ -108,6 +108,7 @@ public class ZooKeeperServerMain {
 
             txnLog = new FileTxnSnapLog(new File(config.dataLogDir), new File(
                     config.dataDir));
+            txnLog.setServerStats(zkServer.serverStats());
             zkServer.setTxnLogFactory(txnLog);
             zkServer.setTickTime(config.tickTime);
             zkServer.setMinSessionTimeout(config.minSessionTimeout);
