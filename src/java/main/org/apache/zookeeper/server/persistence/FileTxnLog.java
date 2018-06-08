@@ -41,6 +41,7 @@ import org.apache.jute.BinaryOutputArchive;
 import org.apache.jute.InputArchive;
 import org.apache.jute.OutputArchive;
 import org.apache.jute.Record;
+import org.apache.zookeeper.server.ServerStats;
 import org.apache.zookeeper.server.util.SerializeUtils;
 import org.apache.zookeeper.txn.TxnHeader;
 import org.slf4j.Logger;
@@ -129,6 +130,8 @@ public class FileTxnLog implements TxnLog {
     long currentSize;
     File logFileWrite = null;
 
+    private ServerStats serverStats;
+
     /**
      * constructor for FileTxnLog. Take the directory
      * where the txnlogs are stored
@@ -148,7 +151,16 @@ public class FileTxnLog implements TxnLog {
     }
 
     /**
-     * creates a checksum alogrithm to be used
+     * Setter for ServerStats to monitor fsync threshold exceed
+     * @param serverStats used to update fsyncThresholdExceedCount
+     */
+     @Override
+     public void setServerStats(ServerStats serverStats) {
+         this.serverStats = serverStats;
+     }
+
+    /**
+     * creates a checksum algorithm to be used
      * @return the checksum used for this txnlog
      */
     protected Checksum makeChecksumAlgorithm(){
@@ -355,6 +367,9 @@ public class FileTxnLog implements TxnLog {
                 long syncElapsedMS =
                     TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startSyncNS);
                 if (syncElapsedMS > fsyncWarningThresholdMS) {
+                    if(serverStats != null) {
+                        serverStats.incrementFsyncThresholdExceedCount();
+                    }
                     LOG.warn("fsync-ing the write ahead log in "
                             + Thread.currentThread().getName()
                             + " took " + syncElapsedMS

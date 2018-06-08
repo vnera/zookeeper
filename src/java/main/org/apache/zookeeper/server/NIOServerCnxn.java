@@ -779,6 +779,8 @@ public class NIOServerCnxn extends ServerCnxn {
                 print("max_file_descriptor_count", unixos.getMaxFileDescriptorCount());
             }
 
+            print("fsync_threshold_exceed_count", stats.getFsyncThresholdExceedCount());
+
             if(stats.getServerState().equals("leader")) {
                 Leader leader = ((LeaderZooKeeperServer)zkServer).getLeader();
 
