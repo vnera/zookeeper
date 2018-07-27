@@ -792,8 +792,8 @@
       permission to check.)</para>
 
       <para><emphasis>ADMIN</emphasis> permission also has a special role in terms of ACLs:
-      in order to retrieve ACLs of a znode user has to have <emphasis>READ</emphasis> 
-      or <emphasis>ADMIN</emphasis> permission, but without <emphasis>ADMIN</emphasis> permission, 
+      in order to retrieve ACLs of a znode user has to have <emphasis>READ</emphasis>
+      or <emphasis>ADMIN</emphasis> permission, but without <emphasis>ADMIN</emphasis> permission,
       digest hash values will be masked out.</para>
 
     <section id="sc_BuiltinACLSchemes">
@@ -912,8 +912,8 @@
             *acl, <emphasis>struct</emphasis> Stat *stat);</para>
       </listitem></itemizedlist>
 
-      <para>This operation returns a node’s ACL info. 
-      The node must have READ or ADMIN permission set. 
+      <para>This operation returns a node’s ACL info.
+      The node must have READ or ADMIN permission set.
       Without ADMIN permission, the digest hash values will be masked out.</para>
 
       <itemizedlist><listitem>
@@ -1350,6 +1350,26 @@ authProvider.2=com.f.MyAuth2
               <para>Specifies path to kinit binary. Default is "/usr/bin/kinit".</para>
             </listitem>
           </varlistentry>
+            <varlistentry>
+                <term>zookeeper.request.timeout</term>
+                <listitem>
+                <para>
+                  <emphasis role="bold">New in 3.6.0,3.5.5:</emphasis>
+                  If ZooKeeper server is not responding or if there is a delay in the
+                  network, ZooKeeper client java sync API waits infinitely for the
+                  response. To avoid this situation configure
+                  zookeeper.request.timeout. By default this feature is disabled and
+                  default value is 0. To enable this feature configure a positive
+                  integer value. for example to set value to 30 second configure
+                  zookeeper.request.timeout=30000.
+                </para>
+                <para>
+                    If response is not received within configured zookeeper.request.timeout
+                    then outgoing and pending requests are cancelled with
+                    org.apache.zookeeper.KeeperException.ConnectionLossException.
+                </para>
+                </listitem>
+            </varlistentry>
         </variablelist>
       </section>
     </section>

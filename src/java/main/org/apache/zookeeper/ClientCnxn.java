@@ -64,6 +64,7 @@ import org.apache.zookeeper.ZooDefs.OpCode;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.ZooKeeper.WatchRegistration;
 import org.apache.zookeeper.client.HostProvider;
+import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.client.ZooKeeperSaslClient;
 import org.apache.zookeeper.proto.AuthPacket;
 import org.apache.zookeeper.proto.ConnectRequest;
@@ -213,6 +214,13 @@ public class ClientCnxn {
 
 
     public ZooKeeperSaslClient zooKeeperSaslClient;
+
+    private ZKClientConfig clientConfig;
+    /**
+     * If any request's response in not received in configured requestTimeout
+     * then it is assumed that the response packet is lost.
+     */
+    private long requestTimeout;
 
     public long getSessionId() {
         return sessionId;
@@ -406,7 +414,9 @@ public class ClientCnxn {
 
         sendThread = new SendThread(clientCnxnSocket);
         eventThread = new EventThread();
-
+        // FIXME: should come form Zookeeper class, land ZOOKEEPER-2139
+        this.clientConfig = new ZKClientConfig();
+        initRequestTimeout();
     }
 
     /**
@@ -684,7 +694,8 @@ public class ClientCnxn {
        }
     }
 
-    private void finishPacket(Packet p) {
+    // @VisibleForTesting
+    protected void finishPacket(Packet p) {
         int err = p.replyHeader.getErr();
         if (p.watchRegistration != null) {
             p.watchRegistration.register(err);
@@ -838,7 +849,7 @@ public class ClientCnxn {
                 if(replyHdr.getErr() == KeeperException.Code.AUTHFAILED.intValue()) {
                     state = States.AUTH_FAILED;                    
                     eventThread.queueEvent( new WatchedEvent(Watcher.Event.EventType.None, 
-                            Watcher.Event.KeeperState.AuthFailed, null) );            		            		
+                            Watcher.Event.KeeperState.AuthFailed, null) );
                 }
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Got auth sessionid:0x"
@@ -1120,7 +1131,7 @@ public class ClientCnxn {
 
         private static final String RETRY_CONN_MSG =
             ", closing socket connection and attempting reconnect";
-        
+
         @Override
         public void run() {
             clientCnxnSocket.introduce(this,sessionId);
@@ -1250,15 +1261,7 @@ public class ClientCnxn {
                                             + ", unexpected error"
                                             + RETRY_CONN_MSG, e);
                         }
-                        cleanup();
-                        if (state.isAlive()) {
-                            eventThread.queueEvent(new WatchedEvent(
-                                    Event.EventType.None,
-                                    Event.KeeperState.Disconnected,
-                                    null));
-                        }
-                        clientCnxnSocket.updateNow();
-                        clientCnxnSocket.updateLastSendAndHeard();
+                        cleanAndNotifyState();
                     }
                 }
             }
@@ -1270,6 +1273,16 @@ public class ClientCnxn {
             }
             ZooTrace.logTraceMessage(LOG, ZooTrace.getTextTraceLevel(),
                                      "SendThread exitedloop.");
+        }
+
+        private void cleanAndNotifyState() {
+            cleanup();
+            if (state.isAlive()) {
+                eventThread.queueEvent(new WatchedEvent(Event.EventType.None,
+                        Event.KeeperState.Disconnected, null));
+            }
+            clientCnxnSocket.updateNow();
+            clientCnxnSocket.updateLastSendAndHeard();
         }
 
         private void pingRwServer() throws RWServerFoundException, UnknownHostException {
@@ -1489,11 +1502,40 @@ public class ClientCnxn {
         Packet packet = queuePacket(h, r, request, response, null, null, null,
                 null, watchRegistration, watchDeregistration);
         synchronized (packet) {
-            while (!packet.finished) {
-                packet.wait();
+            if (requestTimeout > 0) {
+                // Wait for request completion with timeout
+                waitForPacketFinish(r, packet);
+            } else {
+                // Wait for request completion infinitely
+                while (!packet.finished) {
+                    packet.wait();
+                }
             }
         }
+        if (r.getErr() == Code.REQUESTTIMEOUT.intValue()) {
+            sendThread.cleanAndNotifyState();
+        }
         return r;
+    }
+
+    /**
+     * Wait for request completion with timeout.
+     */
+    private void waitForPacketFinish(ReplyHeader r, Packet packet)
+            throws InterruptedException {
+        // FIXME: should be Time.currentElapsedTime(), land ZOOKEEPER-1366
+        long waitStartTime = System.nanoTime() / 1000000;
+        while (!packet.finished) {
+            packet.wait(requestTimeout);
+            // FIXME: should be Time.currentElapsedTime(), land ZOOKEEPER-1366
+            if (!packet.finished && (((System.nanoTime() / 1000000)
+                    - waitStartTime) >= requestTimeout)) {
+                LOG.error("Timeout error occurred for the packet '{}'.",
+                        packet);
+                r.setErr(Code.REQUESTTIMEOUT.intValue());
+                break;
+            }
+        }
     }
 
     public void enableWrite() {
@@ -1580,6 +1622,24 @@ public class ClientCnxn {
             this.rc = rc;
             this.path = path;
             this.ctx = ctx;
+        }
+    }
+
+    private void initRequestTimeout() {
+        try {
+            requestTimeout = clientConfig.getLong(
+                    ZKClientConfig.ZOOKEEPER_REQUEST_TIMEOUT,
+                    ZKClientConfig.ZOOKEEPER_REQUEST_TIMEOUT_DEFAULT);
+            LOG.info("{} value is {}. feature enabled=",
+                    ZKClientConfig.ZOOKEEPER_REQUEST_TIMEOUT,
+                    requestTimeout, requestTimeout > 0);
+        } catch (NumberFormatException e) {
+            LOG.error(
+                    "Configured value {} for property {} can not be parsed to long.",
+                    clientConfig.getProperty(
+                            ZKClientConfig.ZOOKEEPER_REQUEST_TIMEOUT),
+                    ZKClientConfig.ZOOKEEPER_REQUEST_TIMEOUT);
+            throw e;
         }
     }
 }

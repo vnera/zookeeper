@@ -136,6 +136,8 @@ public abstract class KeeperException extends Exception {
                 return new NotReadOnlyException();
             case NOWATCHER:
                 return new NoWatcherException();
+            case REQUESTTIMEOUT:
+                return new RequestTimeoutException();
             case OK:
             default:
                 throw new IllegalArgumentException("Invalid exception code");
@@ -353,7 +355,9 @@ public abstract class KeeperException extends Exception {
         /** State-changing request is passed to read-only server */
         NOTREADONLY (-119),
         /** Attempts to remove a non-existing watcher */
-        NOWATCHER (-123);
+        NOWATCHER (-123),
+        /** Request not completed within max allowed time.*/
+        REQUESTTIMEOUT (-122);
 
         private static final Map<Integer,Code> lookup
             = new HashMap<Integer,Code>();
@@ -690,7 +694,7 @@ public abstract class KeeperException extends Exception {
             super(Code.SESSIONEXPIRED);
         }
     }
-    
+
     /**
      * @see Code#SESSIONMOVED
      */
@@ -741,6 +745,15 @@ public abstract class KeeperException extends Exception {
 
         public NoWatcherException(String path) {
             super(Code.NOWATCHER, path);
+        }
+    }
+
+    /**
+     * @see Code#REQUESTTIMEOUT
+     */
+    public static class RequestTimeoutException extends KeeperException {
+        public RequestTimeoutException() {
+            super(Code.REQUESTTIMEOUT);
         }
     }
 }

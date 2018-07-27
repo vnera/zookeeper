@@ -626,11 +626,21 @@ public class ZooKeeper implements AutoCloseable {
                 connectString);
         HostProvider hostProvider = new StaticHostProvider(
                 connectStringParser.getServerAddresses());
-        cnxn = new ClientCnxn(connectStringParser.getChrootPath(),
+        cnxn = createConnection(connectStringParser.getChrootPath(),
                 hostProvider, sessionTimeout, this, watchManager,
                 getClientCnxnSocket(), canBeReadOnly);
         cnxn.start();
     }
+
+    // @VisibleForTesting
+    protected ClientCnxn createConnection(String chrootPath,
+                                          HostProvider hostProvider, int sessionTimeout, ZooKeeper zooKeeper,
+                                          ClientWatchManager watcher, ClientCnxnSocket clientCnxnSocket,
+                                          boolean canBeReadOnly) throws IOException {
+        return new ClientCnxn(chrootPath, hostProvider, sessionTimeout, this,
+                watchManager, clientCnxnSocket, canBeReadOnly);
+    }
+
 
     /**
      * To create a ZooKeeper client object, the application needs to pass a
