@@ -117,10 +117,4 @@ public interface ZooKeeperServerMXBean {
      * @return number of alive client connections
      */
     public long getNumAliveConnections();
-
-    /**
-     *
-     * @return Returns the value of the following config setting: jute.maxbuffer
-     */
-    public int getJuteMaxBufferSize();
 }

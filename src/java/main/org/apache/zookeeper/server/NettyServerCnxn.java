@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.jute.BinaryInputArchive;
 import org.apache.jute.BinaryOutputArchive;
 import org.apache.jute.Record;
-import org.apache.zookeeper.server.quorum.ProposalStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.Environment;
@@ -404,12 +403,8 @@ public class NettyServerCnxn extends ServerCnxn {
             if (zkServer == null) {
                 pw.println(ZK_NOT_SERVING);
             }
-            else {
-                ServerStats serverStats = zkServer.serverStats();
-                serverStats.reset();
-                if (serverStats.getServerState().equals("leader")) {
-                    ((LeaderZooKeeperServer)zkServer).getLeader().getProposalStats().reset();
-                }
+            else { 
+                zkServer.serverStats().reset();
                 pw.println("Server stats reset.");
             }
         }
@@ -488,16 +483,11 @@ public class NettyServerCnxn extends ServerCnxn {
                     }
                     pw.println();
                 }
-                ServerStats serverStats = zkServer.serverStats();
-                pw.print(serverStats.toString());
+                pw.print(zkServer.serverStats().toString());
                 pw.print("Node count: ");
                 pw.println(zkServer.getZKDatabase().getNodeCount());
-                if (serverStats.getServerState().equals("leader")) {
-                    Leader leader = ((LeaderZooKeeperServer)zkServer).getLeader();
-                    ProposalStats proposalStats = leader.getProposalStats();
-                    pw.printf("Proposal sizes last/min/max: %s%n", proposalStats.toString());
-                }
             }
+            
         }
     }
     
@@ -601,10 +591,6 @@ public class NettyServerCnxn extends ServerCnxn {
                 print("followers", leader.getLearners().size());
                 print("synced_followers", leader.getForwardingFollowers().size());
                 print("pending_syncs", leader.getNumPendingSyncs());
-
-                print("last_proposal_size", leader.getProposalStats().getLastProposalSize());
-                print("max_proposal_size", leader.getProposalStats().getMaxProposalSize());
-                print("min_proposal_size", leader.getProposalStats().getMinProposalSize());
             }
         }
 
