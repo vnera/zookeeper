@@ -1,0 +1,15 @@
+Package: zookeeper-server
+Source: zookeeper
+Version: 3.4.5+cdh6.3.2-1605554
+Architecture: all
+Maintainer: vRNI, VMware, Inc. <https://www.vmware.com/support>
+Installed-Size: 21
+Depends: zookeeper (= 3.4.5+cdh6.3.2-1605554)
+Section: misc
+Priority: extra
+Homepage: http://zookeeper.apache.org/
+Description: The Hadoop Zookeeper server
+ This package starts the zookeeper server on startup
+ .
+ .
+ Built by vRNI, VMware, Inc.

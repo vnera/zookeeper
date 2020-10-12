@@ -1,0 +1,75 @@
+#!/bin/bash
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -ex
+CWD="$(dirname "$0")"
+COMPONENT="zookeeper"
+
+# This file can be called in two ways. In the normal path, it is
+# invoked here as-is, and the build functions are over in the
+# templates directory.  As part of packaging, it is copied into a
+# package-specific directory along with the contents of the templates
+# directory, and so the build functions are in the currrent working
+# directory.
+FUNCTIONS1="${CWD}/../../templates/buildfuncs"
+FUNCTIONS2="${CWD}/buildfuncs"
+if [ -f "${FUNCTIONS1}" ]; then
+    . "${FUNCTIONS1}"
+elif [ -f "${FUNCTIONS2}" ]; then
+    . "${FUNCTIONS2}"
+else
+    echo "Unable to source ${FUNCTIONS1} or ${FUNCTIONS2}"
+    exit 1
+fi
+
+IVY_MIRROR_PROP=${IVY_MIRROR_PROP:-https://repo1.maven.org/maven2}
+#Reghu: Changing the URL
+#Changing the URL for other file references
+sed -i -e "s#http://repo2.maven.org#https://repo.maven.apache.org#g" ${CWD}/../build.xml 
+sed -i -e "s#http://repo2.maven.org#https://repo.maven.apache.org#g" ${CWD}/../src/contrib/build-contrib.xml
+sed -i -e "s#http://repo1.maven.org#https://repo.maven.apache.org#g" ${CWD}/../ivysettings.xml 
+
+if [ -z "${MAVEN_DEPLOY_ONLY}" ]; then
+    TAR_TARGET="package package-native tar"
+else
+    TAR_TARGET="jar bin-jar test-jar"
+fi
+
+if [ -n "${CAULDRON_BUILD}" ]; then
+  IVYSETTINGS_OVERRIDE="-Divysettings.xml=${CAULDRON_TOP_DIR}/ivysettings.xml"
+else
+  IVYSETTINGS_OVERRIDE=""
+fi
+
+ant -propertyfile cloudera/build.properties ${TAR_TARGET} -Dversion=${FULL_VERSION} \
+  -Dmvnrepo=${IVY_MIRROR_PROP} -Divy.url="${IVY_MIRROR_PROP}/org/apache/ivy/ivy" -Divy.home=${HOME}/.ivy2 \
+  ${IVYSETTINGS_OVERRIDE} \
+  "$@"
+
+if [ -n "${MAVEN_DEPLOY_ONLY}" ]; then
+  # Copy generated docs
+  # This is in the maven phase of the package build.
+  PUB_DOCS_DIR="${CAULDRON_OUTPUT}/cdh6/${CDH_VERSION}/docs/${COMPONENT}-${FULL_VERSION}/"
+  mkdir -p "${PUB_DOCS_DIR}"
+  cp -r docs/* "${PUB_DOCS_DIR}"
+fi
+
+if [ -n "$DO_MAVEN_DEPLOY" ]; then
+# Change to cloudera/maven directory, and install
+# (and if called from CDH nightly build, deploy) artifacts into Maven repository
+    cd cloudera/maven-packaging
+    mvn $CAULDRON_MAVEN_EXTRA_ARGS -Dnot.cdh.release.build=false -Dmaven.repo.local=${HOME}/.m2/repository${M2_REPO_SUFFIX} install $DO_MAVEN_DEPLOY
+fi

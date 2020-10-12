@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PREFIX=$(dirname $(readlink -f $0))
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PREFIX}/../lib:${PREFIX}/../lib64
+/usr/lib/zookeeper-native/load_gen $@
+

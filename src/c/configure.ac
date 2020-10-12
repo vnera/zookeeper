@@ -34,7 +34,9 @@ if test "$with_cppunit" = "no" ; then
    CPPUNIT_INCLUDE=
    CPPUNIT_LIBS=
 else
-   AM_PATH_CPPUNIT(1.10.2)
+#rvasanthakumari Change 1 AM_PATH_UNIT tob removed 	
+   #AM_PATH_CPPUNIT(1.10.2)
+   CPPUNIT_LIBS=-lcppunit
 fi
 
 if test "$CALLER" = "ANT" ; then

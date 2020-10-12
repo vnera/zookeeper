@@ -1,0 +1,14 @@
+Package: zookeeper-native
+Source: zookeeper
+Version: 3.4.5+cdh6.3.2-1605554
+Architecture: amd64
+Maintainer: vRNI, VMware, Inc. <https://www.vmware.com/support>
+Installed-Size: 796
+Section: misc
+Priority: extra
+Homepage: http://zookeeper.apache.org/
+Description: C bindings for ZooKeeper clients
+ Provides native libraries and development headers for C / C++ ZooKeeper clients. Consists of both single-threaded and multi-threaded implementations.
+ .
+ .
+ Built by vRNI, VMware, Inc.

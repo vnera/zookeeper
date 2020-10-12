@@ -1,0 +1,3 @@
+shlibs:Depends=libc6 (>= 2.16), zookeeper-native
+misc:Depends=
+misc:Pre-Depends=
